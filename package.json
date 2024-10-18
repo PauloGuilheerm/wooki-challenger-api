@@ -1,0 +1,32 @@
+{
+  "name": "woovi-challenge-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/router": "^13.1.0",
+    "apollo-server-koa": "^3.13.0",
+    "dotenv": "^16.4.5",
+    "graphql": "^15.9.0",
+    "graphql-playground-middleware-koa": "^1.6.22",
+    "koa": "^2.15.3",
+    "koa-bodyparser": "^4.4.1",
+    "koa-graphql": "^0.12.0",
+    "koa-router": "^13.0.1",
+    "mongodb": "^6.9.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "description": ""
+}
