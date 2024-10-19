@@ -1,7 +1,5 @@
 const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLFloat , GraphQLBoolean } = require('graphql');
-const { ObjectId } = require('mongodb');
 const resolvers = require('./resolvers');
-const { getAccountsCollection } = require('./db');
 
 const AccountsType = new GraphQLObjectType({
   name: 'accounts',
@@ -9,6 +7,17 @@ const AccountsType = new GraphQLObjectType({
     _id: { type: GraphQLString },
     name: { type: GraphQLString },
     balance: { type: GraphQLFloat },
+    message: { type: GraphQLString },
+    success: { type: GraphQLBoolean }
+  },
+});
+
+const CreateAccountType = new GraphQLObjectType({
+  name: 'createaccounts',
+  fields: {
+    message: { type: GraphQLString },
+    success: { type: GraphQLBoolean },
+    accountid: { type: GraphQLString },
   },
 });
 
@@ -34,15 +43,12 @@ const QueryType = new GraphQLObjectType({
   fields: {
     account: {
       type: AccountsType,
-      args: { id: { type: GraphQLString } },
-      resolve: async (parent, { id }) => {
-        const accountsCollection = await getAccountsCollection();
-        return await accountsCollection.findOne({ _id: new ObjectId(id) });
-      },
+      args: { accountowner: { type: GraphQLString } },
+      resolve: resolvers.Query.account
     },
     getAccountBalance: {
       type: AccountBalanceResponseType,
-      args: { id: { type: GraphQLString } },
+      args: { accountowner: { type: GraphQLString } },
       resolve: resolvers.Query.getAccountBalance
     },
   },
@@ -52,7 +58,7 @@ const MutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
     createAccount: {
-      type: AccountsType,
+      type: CreateAccountType,
       args: {
         name: { type: GraphQLString },
       },

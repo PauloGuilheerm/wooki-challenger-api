@@ -3,50 +3,42 @@ const { getAccountsCollection, getTransactionsCollection} = require('./db');
 
 const resolvers = {
   Query: {
-    account: async (parent, { id }, { accountsCollection }) => {
+    account: async (parent, { accountowner }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
-      try {
-        const accountId = new ObjectId(id);
-        id = accountId;
-      }catch{
+      if(accountowner == null || accountowner === undefined){
         return {
-          message: 'ID invalid',
+          message: 'Account owner is required',
           success: false,
-          data: {}
         };
       }
 
-      const account = await accountsCollection.findOne({ _id: id });
+      const account = await accountsCollection.findOne({ name: accountowner });
 
-      if(!account){
+      if(account == null){
         return {
           message: 'Account not found',
           success: false,
-          data: {}
         };
-      };
+      }; 
 
       return {
         message: 'Account found successfully',
         success: true,
-        data: account,
+        ...account,
       }
     },
-    getAccountBalance: async (parent, { id }, { accountsCollection }) => {
+    getAccountBalance: async (parent, { accountowner }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
-      try {
-        const accountId = new ObjectId(id);
-        id = accountId;
-      }catch{
+      if(accountowner === null || accountowner === undefined){
         return {
-          message: 'ID invalid',
+          message: 'Account owner is required',
           success: false,
+          data: {}
         };
       }
-
-      const account = await accountsCollection.findOne({ _id: new ObjectId(id) });
+      const account = await accountsCollection.findOne({ name: accountowner.toLowerCase() });
 
       if (!account) {
         return {
@@ -66,12 +58,34 @@ const resolvers = {
   Mutation: {
     createAccount: async (parent, { name }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
+
+      if(!name)  {
+        return {
+          message: 'Name is required',
+          success: false,
+        };
+      };
+      
+      const axistingAccountWithThisName = await accountsCollection.findOne({ name: name.toLowerCase() });
+
+      if(axistingAccountWithThisName) {
+        return {
+          message: 'Account with this owner already exists',
+          success: false,
+        };
+      };
+
       const newAccount = {
-        name: name,
+        name: name.toLowerCase(),
         balance: 0,
       };
+      
       await accountsCollection.insertOne(newAccount);
-      return newAccount;
+      
+      return {
+        message: 'Account created successfully',
+        success: true,
+      };
     },
     transferMoney: async (parent, { fromId, toId, amount },  { accountsCollection, transactionsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();

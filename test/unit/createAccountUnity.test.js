@@ -1,6 +1,8 @@
 // createAccount.test.js
 const resolvers = require('../../resolvers');
 
+const { generateRandomName } = require('../utils/generateNamesForTest');
+
 const { createAccount } = resolvers.Mutation;
 
 describe('createAccount resolver', () => {
@@ -14,12 +16,13 @@ describe('createAccount resolver', () => {
   });
 
   it('should create a new account successfully', async () => {
-    const input = { name: 'João' };
+    const accountowner = generateRandomName();
+    const input = { name: accountowner };
     accountsCollectionMock.insertOne.mockResolvedValueOnce({ insertedId: '12345' });
 
     const result = await createAccount(null, input, { accountsCollection: accountsCollectionMock });
 
-    expect(result.name).toBe(input.name);
-    expect(result.balance).toBe(0);
+    expect(result.message).toBe('Account created successfully');
+    expect(result.success).toBe(true);
   });
 });

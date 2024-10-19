@@ -1,6 +1,8 @@
 const request = require('supertest');
 const { startServer } = require('../../../server');
 
+const { generateRandomName } = require('../../utils/generateNamesForTest');
+
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -18,12 +20,11 @@ describe('GraphQL API - Create Account', () => {
   });
 
   it('should create an account successfully', async () => {
+    const accountowner = generateRandomName();
     const mutation = `
       mutation {
-        createAccount(name: "John Doe") {
-          _id
-          name
-          balance
+        createAccount(name: \"${accountowner}\") {
+        message success
         }
       }
     `;
@@ -33,7 +34,7 @@ describe('GraphQL API - Create Account', () => {
       .send({ query: mutation })
       .expect(200);
 
-    expect(response.body.data.createAccount.name).toBe("John Doe");
-    expect(response.body.data.createAccount.balance).toBe(0);
+    expect(response.body.data.createAccount.message).toBe('Account created successfully');
+    expect(response.body.data.createAccount.success).toBe(true);
   });
 });

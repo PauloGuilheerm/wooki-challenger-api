@@ -1,6 +1,7 @@
 const { getAccountBalance } = require('../../resolvers').Query;
 const { ObjectId } = require('mongodb');
 
+const { generateRandomName } = require('../utils/generateNamesForTest');
 describe('getAccountBalance resolver', () => {
   let accountsCollectionMock;
 
@@ -11,11 +12,12 @@ describe('getAccountBalance resolver', () => {
   });
 
   it('should return the correct balance for a valid account', async () => {
-    const mockAccount = { _id: new ObjectId().toHexString(), balance: 100.50 };
+    const accountowner = generateRandomName();
+    const mockAccount = { _id: new ObjectId().toHexString(), name: accountowner,balance: 100.50 };
     
     accountsCollectionMock.findOne.mockResolvedValueOnce(mockAccount);
 
-    const result = await getAccountBalance(null, { id: mockAccount._id }, { accountsCollection: accountsCollectionMock });
+    const result = await getAccountBalance(null, { accountowner: mockAccount.name }, { accountsCollection: accountsCollectionMock });
 
     expect(result.message).toBe('Account found successfully');
     expect(result.success).toBe(true);
@@ -23,20 +25,20 @@ describe('getAccountBalance resolver', () => {
   });
 
   it('should throw an error if the account is not found', async () => {
-    const accountId = new ObjectId().toHexString();
+    const accountowner = generateRandomName();
 
-    const result = await getAccountBalance(null, { id: accountId }, { accountsCollection: accountsCollectionMock });
+    const result = await getAccountBalance(null, { accountowner: accountowner }, { accountsCollection: accountsCollectionMock });
 
     expect(result.message).toBe('Account not found');
     expect(result.success).toBe(false);
   });
 
-  it('should throw an error for an invalid ObjectId', async () => {
-    const invalidAccountId = 'invalid_id';
+  it('should throw an error for an invalid account owner', async () => {
+    const invalidaccountowner = 'invalid accountowner';
 
-    const result = await getAccountBalance(null, { id: invalidAccountId }, { accountsCollection: accountsCollectionMock });
+    const result = await getAccountBalance(null, { accountowner: invalidaccountowner }, { accountsCollection: accountsCollectionMock });
 
-    expect(result.message).toBe('ID invalid');
+    expect(result.message).toBe('Account not found');
     expect(result.success).toBe(false);
   });
 });

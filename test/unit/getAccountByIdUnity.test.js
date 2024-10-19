@@ -2,6 +2,7 @@ const resolvers = require('../../resolvers');
 const { account } = resolvers.Query;
 const { ObjectId } = require('mongodb');
 
+const { generateRandomName } = require('../utils/generateNamesForTest');
 describe('account resolver', () => {
   let accountsCollectionMock;
 
@@ -11,26 +12,26 @@ describe('account resolver', () => {
     };
   });
 
-  it('should fetch an account by ID successfully', async () => {
-    const mockAccount = { id: new ObjectId().toHexString(), name: 'João', balance: 100 };
+  it('should fetch an account by account owner successfully', async () => {
+    const accountowner = generateRandomName();
+    const mockAccount = { id: new ObjectId().toHexString(), name: accountowner, balance: 100 };
 
     accountsCollectionMock.findOne.mockResolvedValueOnce(mockAccount);
 
-    const result = await account(null, { id: mockAccount.id}, { accountsCollection: accountsCollectionMock });
+    const result = await account(null, { accountowner: mockAccount.name }, { accountsCollection: accountsCollectionMock });
 
-    expect(result.data.id).toBe(mockAccount.id);
-    expect(result.data.name).toBe(mockAccount.name);
-    expect(result.data.balance).toBe(mockAccount.balance);
+    expect(result.id).toBe(mockAccount.id);
+    expect(result.name).toBe(mockAccount.name);
+    expect(result.balance).toBe(mockAccount.balance);
+    expect(result.success).toBe(true);
   });
 
   it('should return null if account not found', async () => {
-    const input = { id: 'non-existent-id' };
-
-    accountsCollectionMock.findOne.mockResolvedValueOnce(null);
+    const input = { accountowner: 'teste' };
 
     const result = await account(null, input, { accountsCollection: accountsCollectionMock });
 
-    expect(result.message).toBe('ID invalid');
+    expect(result.message).toBe('Account not found');
     expect(result.success).toBe(false);
   });
 });
