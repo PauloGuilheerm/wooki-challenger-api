@@ -12,6 +12,7 @@
   "dependencies": {
     "@koa/router": "13.1.0",
     "apollo-server-koa": "3.13.0",
+    "bcrypt": "^5.1.1",
     "dotenv": "16.4.5",
     "graphql": "15.9.0",
     "graphql-playground-middleware-koa": "^1.6.22",

@@ -1,7 +1,9 @@
 // createAccount.test.js
 const resolvers = require('../../resolvers');
 
+const { generateRandomEmail } = require('../utils/generateEmailsForTest');
 const { generateRandomName } = require('../utils/generateNamesForTest');
+const { generateRandomPassword } = require('../utils/generateRandomPassword');
 
 const { createAccount } = resolvers.Mutation;
 
@@ -17,7 +19,10 @@ describe('createAccount resolver', () => {
 
   it('should create a new account successfully', async () => {
     const accountowner = generateRandomName();
-    const input = { name: accountowner };
+    const accountemail = generateRandomEmail();
+    const accountpassword = generateRandomPassword();
+
+    const input = { name: accountowner, email: accountemail, password: accountpassword };
     accountsCollectionMock.insertOne.mockResolvedValueOnce({ insertedId: '12345' });
 
     const result = await createAccount(null, input, { accountsCollection: accountsCollectionMock });

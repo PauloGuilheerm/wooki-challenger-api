@@ -1,19 +1,29 @@
 const { ObjectId } = require('mongodb');
 const { getAccountsCollection, getTransactionsCollection} = require('./db');
+const { hashPassword } = require('./utils/hashPassword');
+
+const bcrypt = require('bcrypt');
 
 const resolvers = {
   Query: {
-    account: async (parent, { accountowner }, { accountsCollection }) => {
+    getAccount: async (parent, { email, password }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
-      if(accountowner == null || accountowner === undefined){
+      if(email == null || email === undefined){
         return {
-          message: 'Account owner is required',
+          message: 'Account email is required',
+          success: false,
+        };
+      };
+
+      if(password == null || password === undefined){
+        return {
+          message: 'Account password is required',
           success: false,
         };
       }
 
-      const account = await accountsCollection.findOne({ name: accountowner });
+      const account = await accountsCollection.findOne({ email: email.toLowerCase() });
 
       if(account == null){
         return {
@@ -22,23 +32,32 @@ const resolvers = {
         };
       }; 
 
+      const isMatchPassword = await bcrypt.compare(password, account.password);
+
+      if(!isMatchPassword){
+        return {
+          message: 'Password is incorrect',
+          success: false,
+        };
+      };
+      
       return {
         message: 'Account found successfully',
         success: true,
         ...account,
       }
     },
-    getAccountBalance: async (parent, { accountowner }, { accountsCollection }) => {
+    getAccountBalance: async (parent, { id }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
-      if(accountowner === null || accountowner === undefined){
+      if(id === null || id === undefined){
         return {
-          message: 'Account owner is required',
+          message: 'Account id is required',
           success: false,
           data: {}
         };
       }
-      const account = await accountsCollection.findOne({ name: accountowner.toLowerCase() });
+      const account = await accountsCollection.findOne({ _id: new ObjectId(id) });
 
       if (!account) {
         return {
@@ -56,7 +75,7 @@ const resolvers = {
   },
 
   Mutation: {
-    createAccount: async (parent, { name }, { accountsCollection }) => {
+    createAccount: async (parent, { name, password, email }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
       if(!name)  {
@@ -66,9 +85,9 @@ const resolvers = {
         };
       };
       
-      const axistingAccountWithThisName = await accountsCollection.findOne({ name: name.toLowerCase() });
+      const axistingAccountWithThisEmail = await accountsCollection.findOne({ email: email.toLowerCase() });
 
-      if(axistingAccountWithThisName) {
+      if(axistingAccountWithThisEmail) {
         return {
           message: 'Account with this owner already exists',
           success: false,
@@ -77,7 +96,9 @@ const resolvers = {
 
       const newAccount = {
         name: name.toLowerCase(),
-        balance: 0,
+        balance: 5000,
+        email: email.toLowerCase(),
+        password: await hashPassword(password),
       };
       
       await accountsCollection.insertOne(newAccount);

@@ -2,6 +2,8 @@ const request = require('supertest');
 const { startServer } = require('../../../server');
 
 const { generateRandomName } = require('../../utils/generateNamesForTest');
+const { generateRandomEmail } = require('../../utils/generateEmailsForTest');
+const { generateRandomPassword } = require('../../utils/generateRandomPassword');
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -21,9 +23,12 @@ describe('GraphQL API - Create Account', () => {
 
   it('should create an account successfully', async () => {
     const accountowner = generateRandomName();
+    const accountemail = generateRandomEmail();
+    const accountpassword = generateRandomPassword();
+
     const mutation = `
       mutation {
-        createAccount(name: \"${accountowner}\") {
+        createAccount(name: \"${accountowner}\", email: \"${accountemail}\", password: \"${accountpassword}\") {
         message success
         }
       }

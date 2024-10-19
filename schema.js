@@ -41,14 +41,14 @@ const AccountBalanceResponseType = new GraphQLObjectType({
 const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
-    account: {
+    getAccount: {
       type: AccountsType,
-      args: { accountowner: { type: GraphQLString } },
-      resolve: resolvers.Query.account
+      args: { email: { type: GraphQLString }, password: { type: GraphQLString } },
+      resolve: resolvers.Query.getAccount
     },
     getAccountBalance: {
       type: AccountBalanceResponseType,
-      args: { accountowner: { type: GraphQLString } },
+      args: { id: { type: GraphQLString } },
       resolve: resolvers.Query.getAccountBalance
     },
   },
@@ -61,6 +61,8 @@ const MutationType = new GraphQLObjectType({
       type: CreateAccountType,
       args: {
         name: { type: GraphQLString },
+        email: { type: GraphQLString },
+        password: { type: GraphQLString },
       },
       resolve: resolvers.Mutation.createAccount
     },
