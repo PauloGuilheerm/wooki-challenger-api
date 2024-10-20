@@ -1,4 +1,4 @@
-const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLFloat , GraphQLBoolean } = require('graphql');
+const { GraphQLObjectType, GraphQLSchema, GraphQLString, GraphQLFloat , GraphQLBoolean, GraphQLInt, GraphQLList } = require('graphql');
 const resolvers = require('./resolvers');
 
 const AccountsType = new GraphQLObjectType({
@@ -8,7 +8,18 @@ const AccountsType = new GraphQLObjectType({
     name: { type: GraphQLString },
     balance: { type: GraphQLFloat },
     message: { type: GraphQLString },
+    email: { type: GraphQLString },
     success: { type: GraphQLBoolean }
+  },
+});
+
+const TransfersType = new GraphQLObjectType({
+  name: 'transfer',
+  fields: {
+    _id: { type: GraphQLString },
+    fromEmail: { type: GraphQLString },
+    toEmail: { type: GraphQLString },
+    amount: { type: GraphQLFloat },
   },
 });
 
@@ -41,6 +52,16 @@ const AccountBalanceResponseType = new GraphQLObjectType({
 const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
+    getTransfersByEmail: {
+      type: new GraphQLList(TransfersType),
+      args: { email: { type: GraphQLString} },
+      resolve: resolvers.Query.getTransfersByEmail
+    },
+    getAccountById: {
+      type: AccountsType,
+      args: { id: { type: GraphQLString } },
+      resolve: resolvers.Query.getAccountById
+    },
     getAccount: {
       type: AccountsType,
       args: { email: { type: GraphQLString }, password: { type: GraphQLString } },
@@ -69,8 +90,8 @@ const MutationType = new GraphQLObjectType({
     transferMoney: {
       type: TransferMoneyResponseType ,
       args: {
-        fromId: { type: GraphQLString },
-        toId: { type: GraphQLString },
+        fromEmail: { type: GraphQLString },
+        toEmail: { type: GraphQLString },
         amount: { type: GraphQLFloat },
       },
       resolve: resolvers.Mutation.transferMoney,

@@ -6,7 +6,7 @@ dotenv.config();
 
 let server;
 
-const getTransferMutation = (fromId, toId, amount) => `mutation { transferMoney(fromId: \"${fromId}\",  toId: \"${toId}\",  amount: ${amount}) { success message } }`;
+const getTransferMutation = (fromEmail, toEmail, amount) => `mutation { transferMoney(fromEmail: \"${fromEmail}\",  toEmail: \"${toEmail}\", amount: ${amount}) { success message } }`;
 describe('GraphQL API - Transfer Money', () => {
   beforeAll(async () => {
     const port = Math.floor(1000 + Math.random() * 9000);
@@ -19,7 +19,7 @@ describe('GraphQL API - Transfer Money', () => {
   });
 
   it('should transfer money successfully', async () => {
-    const mutation = getTransferMutation(process.env.ACCOUNT1_MOCK, process.env.ACCOUNT2_MOCK, process.env.AMOUNT_MOCK);
+    const mutation = getTransferMutation(process.env.ACCOUNT1_EMAIL_MOCK, process.env.ACCOUNT2_EMAIL_MOCK, process.env.AMOUNT_MOCK);
 
     const response = await request(server)
       .post('/graphql')
@@ -31,7 +31,7 @@ describe('GraphQL API - Transfer Money', () => {
   });
 
   it('should fail when trying to transfer more than the balance', async () => {
-    const mutation = getTransferMutation(process.env.ACCOUNT_3_MOCKWITHOUT_BALANCE, process.env.ACCOUNT2_MOCK, process.env.AMOUNT_MOCK);
+    const mutation = getTransferMutation(process.env.ACCOUNT_3_EMAIL_MOCK_WITHOUT_BALANCE, process.env.ACCOUNT2_EMAIL_MOCK, process.env.AMOUNT_MOCK);
 
     const response = await request(server)
       .post('/graphql')
@@ -43,7 +43,7 @@ describe('GraphQL API - Transfer Money', () => {
   });
 
   it('should fail when fromId', async () => {
-    const mutation = getTransferMutation(process.env.INVALID_ACCOUNT_ID, process.env.ACCOUNT2_MOCK, process.env.AMOUNT_MOCK);
+    const mutation = getTransferMutation(process.env.INVALID_ACCOUNT_EMAIL, process.env.ACCOUNT2_EMAIL_MOCK, process.env.AMOUNT_MOCK);
 
     const response = await request(server)
       .post('/graphql')
@@ -55,7 +55,7 @@ describe('GraphQL API - Transfer Money', () => {
   });
 
   it('should fail when toId', async () => {
-    const mutation = getTransferMutation(process.env.ACCOUNT1_MOCK, "233333333331111111111113", process.env.AMOUNT_MOCK);
+    const mutation = getTransferMutation(process.env.ACCOUNT1_EMAIL_MOCK, process.env.INVALID_ACCOUNT_EMAIL, process.env.AMOUNT_MOCK);
 
     const response = await request(server)
       .post('/graphql')

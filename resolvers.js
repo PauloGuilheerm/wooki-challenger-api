@@ -1,11 +1,48 @@
 const { ObjectId } = require('mongodb');
-const { getAccountsCollection, getTransactionsCollection} = require('./db');
+const { getAccountsCollection, getTransfersCollection} = require('./db');
 const { hashPassword } = require('./utils/hashPassword');
 
 const bcrypt = require('bcrypt');
 
 const resolvers = {
   Query: {
+    getAccountById: async (parent, { id }, { accountsCollection}) => {
+      
+      accountsCollection = accountsCollection?? await getAccountsCollection();
+
+      try {
+        const account = await accountsCollection.findOne({ _id: new ObjectId(id) });
+        
+        if(!account) {
+          return {
+            message: 'Account not found',
+            success: false,
+          };
+        };
+        
+        return {
+          message: 'Account fetched successfully',
+          success: true,
+          ...account,
+        };
+      }catch{
+        return {
+          message: 'Error fetching account',
+          success: false,
+        }
+      }
+    },
+    getTransfersByEmail: async (parent, { email }, { transfersCollection }) => {
+      transfersCollection = transfersCollection ?? await getTransfersCollection();
+      const transfers = await transfersCollection.find({
+        $or: [
+          { fromEmail: email.toLowerCase() },
+          { toEmail: email.toLowerCase() }
+        ]
+      }).toArray();
+
+      return transfers;
+    },
     getAccount: async (parent, { email, password }, { accountsCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
 
@@ -108,14 +145,26 @@ const resolvers = {
         success: true,
       };
     },
-    transferMoney: async (parent, { fromId, toId, amount },  { accountsCollection, transactionsCollection }) => {
+    transferMoney: async (parent, { fromEmail, toEmail, amount },  { accountsCollection, transfersCollection }) => {
       accountsCollection = accountsCollection ?? await getAccountsCollection();
-      transactionsCollection = transactionsCollection ?? await getTransactionsCollection();
+      transfersCollection = transfersCollection ?? await getTransfersCollection();
       
-      if (amount < 0) throw new Error("Amount must be greater than or equal to 0.");
+      if (amount < 0) {
+        return {
+          message: 'Amount must be greater than or equal to 0.',
+          success: false,
+        };
+      };
       
-      const fromAccount = await accountsCollection.findOne({ _id: new ObjectId(fromId) });
-      const toAccount = await accountsCollection.findOne({ _id: new ObjectId(toId) });
+      if(fromEmail === toEmail){
+        return {
+          message: 'From and To accounts must be different.',
+          success: false,
+        };
+      };
+
+      const fromAccount = await accountsCollection.findOne({ email: fromEmail.toLowerCase() });
+      const toAccount = await accountsCollection.findOne({ email: toEmail.toLowerCase() });
 
       if (!fromAccount) {
         return {
@@ -138,11 +187,11 @@ const resolvers = {
         };
       }
 
-      await accountsCollection.updateOne({ _id: new ObjectId(fromId) }, { $inc: { balance: -amount } });
-      await accountsCollection.updateOne({ _id: new ObjectId(toId) }, { $inc: { balance: +amount } });
+      await accountsCollection.updateOne({ email: fromEmail.toLowerCase() }, { $inc: { balance: -amount } });
+      await accountsCollection.updateOne({ email: toEmail.toLowerCase() }, { $inc: { balance: +amount } });
 
-      const transaction = { fromId, toId, amount };
-      await transactionsCollection.insertOne(transaction);
+      const transaction = { fromEmail, toEmail, amount };
+      await transfersCollection.insertOne(transaction);
 
       return {
         message: 'Transfer successful',

@@ -16,11 +16,11 @@ const getDbConnection = async () => {
 const connectDB = async () => {
   const db = await getDbConnection();
   const accountsCollection = db.collection('accounts');
-  const transactionsCollection = db.collection('transactions');
+  const transfersCollection = db.collection('transfers');
 
   return { 
     accountsCollection, 
-    transactionsCollection
+    transfersCollection
  };
 };
 
@@ -29,10 +29,10 @@ const getAccountsCollection = async() => {
   return db.collection('accounts');
 };
 
-const getTransactionsCollection = async () => {
+const getTransfersCollection = async () => {
   const db = await getDbConnection();
-  return db.collection('transactions');
+  return db.collection('transfers');
 }
 
 
-module.exports = { connectDB, getAccountsCollection, getTransactionsCollection, getDbConnection };
+module.exports = { connectDB, getAccountsCollection, getTransfersCollection, getDbConnection };
